@@ -13,7 +13,7 @@ CREATE TABLE STV230530__STAGING.transactions
     transaction_type varchar (50) not null,
     amount int not null, 
     transaction_dt timestamp, 
-    CONSTRAINT C_PRIMARY PRIMARY KEY (operation_id) DISABLED
+    CONSTRAINT C_PRIMARY PRIMARY KEY (operation_id)  
 );
 
 

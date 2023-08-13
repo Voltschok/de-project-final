@@ -11,16 +11,13 @@ import pandas as pd
 import psycopg2
  
 
-# Чтение параметров подключения для Vertica и Postgres из конфигурации
-config = configparser.ConfigParser()
-
-config.read('config.ini')
+ 
 
 # Параметры безопасности Vertica
-vertica_host = config.get('Vertica', 'host')
-vertica_port = config.get('Vertica', 'port')
-vertica_user = config.get('Vertica', 'user')
-vertica_password = config.get('Vertica', 'password')
+vertica_host = 'vertica.tgcloudenv.ru'  
+vertica_port = '5433' 
+vertica_user = 'stv230530' 
+vertica_password =  'IjUMUB8AONAHDcT' 
 
 conn_info = {'host': vertica_host,
              'port': vertica_port,
@@ -36,42 +33,20 @@ conn_info = {'host': vertica_host,
              'connection_timeout': 30
              # connection timeout is not enabled by default
             }
-
-# Параметры подключения Postgres
-
-#postgres_host=config.get('Postgres', 'host')
-#postgres_port=config.get('Postgres', 'port')
-#postgres_dbname=config.get('Postgres', 'dbname')
-#postgres_user=config.get('Postgres', 'user')
-#postgres_password=config.get('Postgres', 'password')
+ 
 
 #Параметры подключения к S3
-key_id=config.get('S3', 'aws_access_key_id')
-secret_key=config.get('S3', 'aws_secret_access_key')
+key_id= 'YCAJEWXOyY8Bmyk2eJL-hlt2K' #config.get('S3', 'aws_access_key_id')
+secret_key='YCPs52ajb2jNXxOUsL4-pFDL1HnV2BCPd928_ZoA' #config.get('S3', 'aws_secret_access_key')
 
-# Модуль 4: Чтение данных из PostgreSQL
-# def read_from_postgresql():
-
-#     try:
-#         connect_to_postgresql = psycopg2.connect(f"""host={postgres_host} 
-#                                                 port={postgres_port} 
-#                                                 dbname={postgres_dbname}
-#                                                 user={postgres_user}
-#                                                 password={postgres_password}""")
-#         cursor = connect_to_postgresql.cursor()
-#         # Здесь выполняется чтение данных из  PostgreSQL 
-#         cursor.execute(""" """) 
-                       
-#     except psycopg2.Error as e:
-#         # Обработка ошибки подключения к PostgreSQL
-#         print("Ошибка при подключении к PostgreSQL:", e) 
+ 
  
 
 def load_data(conn, path:str ,  file:str):  
     df_csv = pd.read_csv( path )
     tuple_col=", ".join(list(df_csv.columns) )
     tuple_col_str= ('('+ str(tuple_col)+')')
-    
+    print(tuple_col_str)
     with vertica_python.connect(**conn) as connection:
         cur = connection.cursor()
         cur.execute(f"""delete from STV230530__STAGING.{ file }""")
@@ -82,33 +57,26 @@ def load_data(conn, path:str ,  file:str):
         cur.close()
         
  
-def fetch_s3_file(bucket: str, key: str):
+def fetch_s3_file(bucket: str, key: str, bucket_quantity: int):
     # сюда поместить код из скрипта для скачивания файла
+    
+    for i in range(1, bucket_quantity+1):	
+        if key=='transactions_batch_':
+            key_boto3=key+str(i)+'.csv'
+        else:
+            key_boto3=key+'.csv'
+        print(key)
 
-    session = boto3.session.Session()
-    s3_client = session.client(
-    service_name='S3',
-    endpoint_url='https://storage.yandexcloud.net',
-    aws_access_key_id=key_id,
-    aws_secret_access_key=secret_key)
-    s3_client.download_file(
-    bucket,
-    key,
-    Filename=f'/data/{key}')
+        session = boto3.session.Session()
+        s3_client = session.client(service_name='s3',
+        endpoint_url='https://storage.yandexcloud.net',
+        aws_access_key_id=key_id,
+        aws_secret_access_key=secret_key)
+        s3_client.download_file(bucket,
+        key_boto3,
+        Filename=f'/data/{key_boto3}')
 
-# эту команду надо будет поправить, чтобы она выводила
-# первые десять строк каждого файла
-
-bucket_files = ['currencies_history.csv']
-
-bash_command_tmpl = """
-{% for file in params.files %}
-head {{ file }}
-{% endfor %}
-"""
-
-
-
+ 
 with DAG('final_project_staging', schedule_interval=None, start_date=pendulum.parse('2022-10-01')
 ) as dag:
  
@@ -116,54 +84,26 @@ with DAG('final_project_staging', schedule_interval=None, start_date=pendulum.pa
     task1 = PythonOperator(
          task_id='fetch_currencies',
          python_callable=fetch_s3_file,
-         op_kwargs={'bucket': 'final_project', 'key': 'currencies_history.csv'},
+         op_kwargs={'bucket': 'final-project', 'key': 'currencies_history', 'bucket_quantity':1},
      )
-#     task2 = PythonOperator(
-#         task_id='fetch_dialogs',
-#         python_callable=fetch_s3_file,
-#         op_kwargs={'bucket': 'sprint6', 'key': 'dialogs.csv'},
-#     )
-#     task3 = PythonOperator(
-#        task_id='fetch_users',
-#        python_callable=fetch_s3_file,
-#        op_kwargs={'bucket': 'sprint6', 'key': 'users.csv'},
-#     )
-#     task4 = PythonOperator(
-#         task_id='fetch_group_log',
-#         python_callable=fetch_s3_file,
-#         op_kwargs={'bucket': 'sprint6', 'key': 'group_log.csv'},
-#     )
-    
-#     print_10_lines_of_each = BashOperator(
-#         task_id='print_10_lines_of_each',
-#         bash_command=bash_command_tmpl,
-#         params={'files': [f'/data/{f}' for f in bucket_files]}
-#     )
-    task5=PythonOperator(
+    task2 = PythonOperator(
+        task_id='fetch_transactions',
+        python_callable=fetch_s3_file,
+        op_kwargs={'bucket': 'final-project', 'key': 'transactions_batch_', 'bucket_quantity':10}
+    )
+ 
+    task3=PythonOperator(
        task_id='load_currencies',
        python_callable=load_data,
-       op_kwargs={'conn': 'conn_info', 'path':'/data/currencies_history.csv', 'file':'currencies'},
+       op_kwargs={'conn': conn_info, 'path':'/data/currencies_history.csv', 'file':'currencies'},
     )
-#     task6=PythonOperator(
-#        task_id='load_groups',
-#        python_callable=load_data,
-#        op_kwargs={'conn': 'conn_info', 'path':'/data/groups.csv', 'file':'groups'},
-#     )
-#     task7=PythonOperator(
-#          task_id='load_dialogs',
-#          python_callable=load_data,
-#          op_kwargs={'conn': 'conn_info', 'path':'/data/dialogs.csv', 'file':'dialogs' },
-#      )
+    task4=PythonOperator(
+       task_id='load_transactions',
+       python_callable=load_data,
+       op_kwargs={'conn': conn_info, 'path':'/data/transactions_batch_1.csv', 'file':'transactions'},
+    )
+ 
+task1 >> task2 >> task3 >> task4
 
-#     task8=PythonOperator(
-#        task_id='load_group_log',
-#        python_callable=load_data,
-#        op_kwargs={'conn': 'conn_info', 'path':'/data/group_log.csv', 'file':'group_log'},
-#     )
-# ( [task1, task2, task3, task4]
-# >> print_10_lines_of_each
-# >> task5 
-# >> task6
-# >> task7
-#>> task8)
-task1 >> task5
+
+

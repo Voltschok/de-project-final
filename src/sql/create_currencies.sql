@@ -9,7 +9,7 @@ CREATE TABLE STV230530__STAGING.currencies
     date_update timestamp not null,
     currency_with_div numeric(3,2) not null,
     
-    CONSTRAINT C_PRIMARY PRIMARY KEY (date_update, currency_code, currency_code_with) DISABLED
+    CONSTRAINT C_PRIMARY PRIMARY KEY (date_update, currency_code, currency_code_with) DISABLED 
 );
 
 
