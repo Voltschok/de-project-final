@@ -60,7 +60,7 @@ def load_data_postgres(table):
     cursor = connect_to_postgresql.cursor()
     cur_postrgres = conn.cursor()
  
-    
+    SELECT max(update_ts) FROM wf_setting 
     wf_setting = settings_repository.get_setting(conn, self.WF_KEY)
             if not wf_setting:
              
@@ -79,7 +79,7 @@ def load_data_postgres(table):
    
     input = io.StringIO()
     
-    cur_postrgres.copy_expert(f'''COPY (SELECT * from table WHERE transaction_dt > last_loaded_dt ORDER BY transaction_dt) TO STDOUT;''', input)
+    cur_postrgres.copy_expert(f'''COPY (SELECT * from table WHERE transaction_dt > {last_loaded_dt} ORDER BY transaction_dt) TO STDOUT;''', input)
     cur_postrgres.close()
 
 
