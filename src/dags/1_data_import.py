@@ -10,7 +10,7 @@ import boto3
 import pandas as pd 
 import psycopg2
 import os
- 
+from dags.stg_settings import EtlSetting, StgEtlSettingsRepository 
 
 #Параметры подключения POSTGRES
 postgres_conn={
@@ -53,10 +53,29 @@ secret_key='YCPs52ajb2jNXxOUsL4-pFDL1HnV2BCPd928_ZoA' #config.get('S3', 'aws_sec
 
 
 def load_data_postgres(table):
+    WF_KEY = "transactions_to_stg_workflow"
+    LAST_LOADED_ID_KEY = "transaction_ts"
+ 
     connect_to_postgresql = psycopg2.connect(**postgres_conn)
     cursor = connect_to_postgresql.cursor()
     cur_postrgres = conn.cursor()
-    last_loaded_ts
+ 
+    
+    wf_setting = settings_repository.get_setting(conn, self.WF_KEY)
+            if not wf_setting:
+             
+                wf_setting = EtlSetting(
+                    id=0,
+                    workflow_key=self.WF_KEY,
+                    workflow_settings={
+                         LAST_LOADED_TS_KEY: (date.today()-timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
+                    }
+                )
+
+            # Вычитываем очередную пачку объектов.
+            last_loaded_ts_str = wf_setting.workflow_settings[self.LAST_LOADED_TS_KEY]
+            last_loaded_id = datetime.fromisoformat(last_loaded_ts_str)          
+            
    
     input = io.StringIO()
     
