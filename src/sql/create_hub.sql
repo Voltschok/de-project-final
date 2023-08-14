@@ -22,7 +22,8 @@ create table STV230530__DWH.h_currencies
 (
     hk_currency_id bigint primary key,
     currency_code  int unique,
-    date_update datetime,
+    currency_code_with int not null,
+    date_update datetime not null,
     load_dt datetime,
     load_src varchar(20)
 )
