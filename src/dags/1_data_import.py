@@ -73,7 +73,18 @@ def load_transactions_data_postgres(table: str, operation_ts: str)->None:
         cur_vertica.connection.commit()
         cur_vertica.close()
     
- 
+def insert_into_hubs(hub_name):
+    with vertica_python.connect(**vertica_conn_info) as connection:
+    return VerticaOperator(
+                            task_id=f'{action}_{table_name}',
+                            vertica_conn_id='vertica_conn',
+                            sql=f'sql/Insert_into_{table_name}.sql')
+
+def insert_into_links():
+
+def insert_into_sattelites():
+
+  
 # def load_data(conn, path:str ,  file:str):  
 #     df_csv = pd.read_csv( path )
 #     tuple_col=", ".join(list(df_csv.columns) )
