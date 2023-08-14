@@ -82,13 +82,13 @@ def load_data_postgres(table: str, operation_ts: str)->None:
         cur_vertica.close()
     
 
-CUR_DIR = os.path.abspath(os.path.dirname(__file__)) 
+ 
 
 def insert_into_hubs(hub_list):
  
   for table in hub_list:
-     
-     query=  open(f"/home/voltschok/s6-lessons/sql/insert_into_{table}.sql") 
+     path=f"/lessons/sql/insert_into_{table}.sql"
+     query=  open(path).read() 
      print(query)  
      with vertica_python.connect(**vertica_conn_info) as connection:
         cur_vertica = connection.cursor()  
@@ -96,10 +96,10 @@ def insert_into_hubs(hub_list):
         cur_vertica.connection.commit()
         cur_vertica.close()
        
-def insert_into_links(sattelite_list):
+def insert_into_links(link_list):
  
-  for table in sattelite_list:
-     query= f'sql/insert_into_{table}.sql'
+  for table in link_list:
+     query= open(f"/lessons/sql/insert_into_{table}.sql").read() 
      with vertica_python.connect(**vertica_conn_info) as connection:
         cur_vertica = connection.cursor()  
         cur_vertica.execute(query)
@@ -109,7 +109,7 @@ def insert_into_links(sattelite_list):
 def insert_into_sattelites(sattelite_list):
  
   for table in sattelite_list:
-     query= f'sql/insert_into_{table}.sql'
+     query= open(f"/lessons/sql/insert_into_{table}.sql").read() 
      with vertica_python.connect(**vertica_conn_info) as connection:
         cur_vertica = connection.cursor()  
         cur_vertica.execute(query)
