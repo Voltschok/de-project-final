@@ -1,6 +1,6 @@
 drop table if exists STV230530__DWH.s_currency;
 
-create table STV230530__DWH.s_currency
+create table STV230530__DWH.s_currency_exchange_rate
 (
 hk_currency_id bigint not null CONSTRAINT fk_s_currency_h_currencies REFERENCES STV230530__DWH.h_currencies (hk_currency_id),
 currency_with_div numeric(3,2),
