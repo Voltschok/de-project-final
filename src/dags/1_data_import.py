@@ -129,7 +129,7 @@ with DAG('final_project_staging', schedule_interval=None, start_date=pendulum.pa
     task2 = PythonOperator(
         task_id='load_currencies',
         python_callable=load_currencies_data_postgres,
-         op_kwargs={'operation_ts': 'transaction_dt'}, 
+         op_kwargs={'operation_ts': 'date_update'}, 
     )
  
     task3=PythonOperator(
