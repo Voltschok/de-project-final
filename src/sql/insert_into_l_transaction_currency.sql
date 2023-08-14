@@ -5,7 +5,8 @@ INSERT INTO STV230530__DWH.l_transaction_currency(hk_l_transaction_currency,
 													load_dt,
 													load_src)
 select
-hash(ht.hk_transaction_id, hc.hk_currency_id),
+hash(ht.hk_transaction_id, hc.hk_currency_id) as hk_l_transaction_currency ,
+
 ht.hk_transaction_id,
 hc.hk_currency_id,
 now() as load_dt,
