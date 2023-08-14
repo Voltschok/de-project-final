@@ -7,4 +7,4 @@ select
        now() as load_dt,
        's3' as load_src
        from STV230530__STAGING.currencies
-where hash(currency_code) not in (select hk_currency_id from STV230530__DWH.h_currencies);
+where hash(currency_code, currency_code, date_update) not in (select hk_currency_id from STV230530__DWH.h_currencies);
