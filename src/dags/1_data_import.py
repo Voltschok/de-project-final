@@ -75,7 +75,7 @@ def load_transactions_data_postgres(table: str, operation_ts: str)->None:
     
 
 def insert_into_hubs(hub_list):
-  with vertica_python.connect(**vertica_conn_info) as connection:
+ 
   for table in hub_list:
      query= f'sql/insert_into_{table}.sql'
      with vertica_python.connect(**vertica_conn_info) as connection:
@@ -85,7 +85,7 @@ def insert_into_hubs(hub_list):
         cur_vertica.close()
        
 def insert_into_links(sattelite_list):
-  with vertica_python.connect(**vertica_conn_info) as connection:
+ 
   for table in sattelite_list:
      query= f'sql/insert_into_{table}.sql'
      with vertica_python.connect(**vertica_conn_info) as connection:
@@ -95,7 +95,7 @@ def insert_into_links(sattelite_list):
         cur_vertica.close()  
        
 def insert_into_sattelites(sattelite_list):
-  with vertica_python.connect(**vertica_conn_info) as connection:
+ 
   for table in sattelite_list:
      query= f'sql/insert_into_{table}.sql'
      with vertica_python.connect(**vertica_conn_info) as connection:
@@ -104,7 +104,7 @@ def insert_into_sattelites(sattelite_list):
         cur_vertica.connection.commit()
         cur_vertica.close()
        
-with DAG('final_project_staging', schedule_interval=None, start_date=pendulum.parse('2022-10-01')
+with DAG('final_project_staging', schedule_interval=@daily, start_date=pendulum.parse('2022-10-01')
 ) as dag:
  
 
