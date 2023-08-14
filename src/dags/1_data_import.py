@@ -52,50 +52,26 @@ secret_key='YCPs52ajb2jNXxOUsL4-pFDL1HnV2BCPd928_ZoA' #config.get('S3', 'aws_sec
  
 
 
-def load_data_postgres(table):
-    WF_KEY = "transactions_to_stg_workflow"
-    LAST_LOADED_ID_KEY = "transaction_ts"
- 
-    connect_to_postgresql = psycopg2.connect(**postgres_conn)
-    cursor = connect_to_postgresql.cursor()
-    cur_postrgres = conn.cursor()
- 
-    SELECT max(update_ts) FROM wf_setting 
-    wf_setting = settings_repository.get_setting(conn, self.WF_KEY)
-            if not wf_setting:
-             
-                wf_setting = EtlSetting(
-                    id=0,
-                    workflow_key=self.WF_KEY,
-                    workflow_settings={
-                         LAST_LOADED_TS_KEY: (date.today()-timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
-                    }
-                )
+def load_data_postgres():
+    with vertica_python.connect(**conn) as connection:
+        cur_vertica = connection.cursor()  
+        cur_vertica.execute("SELECT max( update_ts) FROM  STV230530__STAGING.transactions_update")
+        last_loaded_dt= cur_vertica.fetchone()
+        cur_vertica.close()
 
-            # Вычитываем очередную пачку объектов.
-            last_loaded_ts_str = wf_setting.workflow_settings[self.LAST_LOADED_TS_KEY]
-            last_loaded_id = datetime.fromisoformat(last_loaded_ts_str)          
-            
-   
-    input = io.StringIO()
-    
-    cur_postrgres.copy_expert(f'''COPY (SELECT * from table WHERE transaction_dt > {last_loaded_dt} ORDER BY transaction_dt) TO STDOUT;''', input)
-    cur_postrgres.close()
-
-
-
-cur_vertica.execute("DROP TABLE IF EXISTS table_1_temp;")
-cur_vertica.connection.commit()
-cur_vertica.execute('''CREATE TABLE table_1_temp (
-id BIGINT, date TIMESTAMP WITHOUT TIME ZONE);''')
-cur_vertica.connection.commit()
-
-#cur_vertica.stdin = input
-#input.seek(0)
-
-cur_vertica.copy('''COPY table_1_temp FROM STDIN NULL AS 'null' ''',  input.getvalue())
-cur_vertica.execute("COMMIT;")
-cur_vertica.close()
+    with psycopg2.connect(**postgres_conn) as connect_to_postgresql: 
+        cursor = connect_to_postgresql.cursor()
+        cur_postrgres = conn.cursor()
+        input = io.StringIO()
+        cur_postrgres.copy_expert(f'''COPY (SELECT * from table WHERE transaction_dt > {last_loaded_dt} ORDER BY transaction_dt) TO STDOUT;''', input)
+        cur_postrgres.close()
+      
+    with vertica_python.connect(**conn) as connection:
+        cur_vertica = connection.cursor()  
+        cur_vertica.copy('''COPY table_1_temp FROM STDIN NULL AS 'null' ''',  input.getvalue())
+        cur_vertica.execute("INSERT INTO STV230530__STAGING.transactions_update(key, updates_ts) VALUES ("transactions", SELECT max(transaction_dt) FROM STV230530__STAGING.transactions")
+        cur_vertica.connection.commit()
+        cur_vertica.close()
     
 
 def load_data(conn, path:str ,  file:str):  
