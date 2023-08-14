@@ -49,14 +49,18 @@ conn_info = {'host': vertica_host,
 key_id= 'YCAJEWXOyY8Bmyk2eJL-hlt2K' #config.get('S3', 'aws_access_key_id')
 secret_key='YCPs52ajb2jNXxOUsL4-pFDL1HnV2BCPd928_ZoA' #config.get('S3', 'aws_secret_access_key')
 
+ 
 
-def load_data_postgres(table)
+
+def load_data_postgres(table):
     connect_to_postgresql = psycopg2.connect(**postgres_conn)
     cursor = connect_to_postgresql.cursor()
-    
-    input = io.StringIO()
     cur_postrgres = conn.cursor()
-    cur_postrgres.copy_expert(f'''COPY (SELECT * from table WHERE ) TO STDOUT;''', input)
+    last_loaded_ts
+   
+    input = io.StringIO()
+    
+    cur_postrgres.copy_expert(f'''COPY (SELECT * from table WHERE transaction_dt > last_loaded_dt ORDER BY transaction_dt) TO STDOUT;''', input)
     cur_postrgres.close()
 
 
