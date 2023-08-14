@@ -31,7 +31,7 @@ vertica_port = '5433'
 vertica_user = 'stv230530' 
 vertica_password =  'IjUMUB8AONAHDcT' 
 
-conn_info = {'host': vertica_host,
+vertica_conn_info = {'host': vertica_host,
              'port': vertica_port,
              'user': vertica_user,
              'password': vertica_password,
@@ -52,7 +52,7 @@ key_id= 'YCAJEWXOyY8Bmyk2eJL-hlt2K' #config.get('S3', 'aws_access_key_id')
 secret_key='YCPs52ajb2jNXxOUsL4-pFDL1HnV2BCPd928_ZoA' #config.get('S3', 'aws_secret_access_key')
 
 def load_transactions_data_postgres(table: str, operation_ts: str)->None:
-    with vertica_python.connect(**conn) as connection:
+    with vertica_python.connect(**vertica_conn_info) as connection:
         cur_vertica = connection.cursor()  
         cur_vertica.execute(f"SELECT max({operation_ts}) FROM  STV230530__STAGING.{table}_update")
         last_loaded_dt= cur_vertica.fetchone()
@@ -65,7 +65,7 @@ def load_transactions_data_postgres(table: str, operation_ts: str)->None:
         cur_postrgres.copy_expert(f'''COPY (SELECT * from public.{table} WHERE {operation_ts} > {last_loaded_dt} ORDER BY {operation_ts}) TO STDOUT;''', input)
         cur_postrgres.close()
       
-    with vertica_python.connect(**conn) as connection:
+    with vertica_python.connect(**vertica_conn_info) as connection:
         cur_vertica = connection.cursor()  
         cur_vertica.copy('''COPY table_1_temp FROM STDIN NULL AS 'null' ''',  input.getvalue())
         cur_vertica.execute(f"""INSERT INTO STV230530__STAGING.{table}_update(key, updates_ts) VALUES ({table}, SELECT max(transaction_dt) FROM STV230530__STAGING.transaction
