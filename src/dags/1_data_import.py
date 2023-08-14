@@ -9,9 +9,19 @@ import vertica_python
 import boto3
 import pandas as pd 
 import psycopg2
+import os
  
 
- 
+#Параметры подключения POSTGRES
+postgres_conn={
+"host" : "rc1b-w5d285tmxa8jimyn.mdb.yandexcloud.net",
+"port" : 6432,
+"dbname": "db1",
+"user" : “student”,
+"password" : "d_student_112022"}
+
+
+
 
 # Параметры безопасности Vertica
 vertica_host = 'vertica.tgcloudenv.ru'  
@@ -39,8 +49,31 @@ conn_info = {'host': vertica_host,
 key_id= 'YCAJEWXOyY8Bmyk2eJL-hlt2K' #config.get('S3', 'aws_access_key_id')
 secret_key='YCPs52ajb2jNXxOUsL4-pFDL1HnV2BCPd928_ZoA' #config.get('S3', 'aws_secret_access_key')
 
- 
- 
+
+def load_data_postgres(table)
+    connect_to_postgresql = psycopg2.connect(**postgres_conn)
+    cursor = connect_to_postgresql.cursor()
+    
+    input = io.StringIO()
+    cur_postrgres = conn.cursor()
+    cur_postrgres.copy_expert(f'''COPY (SELECT * from table WHERE ) TO STDOUT;''', input)
+    cur_postrgres.close()
+
+
+
+cur_vertica.execute("DROP TABLE IF EXISTS table_1_temp;")
+cur_vertica.connection.commit()
+cur_vertica.execute('''CREATE TABLE table_1_temp (
+id BIGINT, date TIMESTAMP WITHOUT TIME ZONE);''')
+cur_vertica.connection.commit()
+
+#cur_vertica.stdin = input
+#input.seek(0)
+
+cur_vertica.copy('''COPY table_1_temp FROM STDIN NULL AS 'null' ''',  input.getvalue())
+cur_vertica.execute("COMMIT;")
+cur_vertica.close()
+    
 
 def load_data(conn, path:str ,  file:str):  
     df_csv = pd.read_csv( path )
@@ -56,25 +89,33 @@ def load_data(conn, path:str ,  file:str):
         connection.commit()
         cur.close()
         
- 
+def get_s3_file_list():
+        s3_file_list=[]
+        session = boto3.session.Session()
+        s3_client = session.client(service_name='s3',
+        endpoint_url='https://storage.yandexcloud.net',
+        aws_access_key_id=key_id,
+        aws_secret_access_key=secret_key)
+        objects = s3_client.list_objects(Bucket='final-project')
+        for object in objects['Contents']:
+            s3_file_list.append(object['Key'])
+        
+        return s3_file_list
+
 def fetch_s3_file(bucket: str, key: str, bucket_quantity: int):
     # сюда поместить код из скрипта для скачивания файла
-    
+    files = os.listdir('/data/')
     for i in range(1, bucket_quantity+1):	
         if key=='transactions_batch_':
             key_boto3=key+str(i)+'.csv'
         else:
             key_boto3=key+'.csv'
         print(key)
-
-        session = boto3.session.Session()
-        s3_client = session.client(service_name='s3',
-        endpoint_url='https://storage.yandexcloud.net',
-        aws_access_key_id=key_id,
-        aws_secret_access_key=secret_key)
-        s3_client.download_file(bucket,
-        key_boto3,
-        Filename=f'/data/{key_boto3}')
+        
+        if key_boto3 not in files:
+            s3_client.download_file(bucket,
+            key_boto3,
+            Filename=f'/data/{key_boto3}')
 
  
 with DAG('final_project_staging', schedule_interval=None, start_date=pendulum.parse('2022-10-01')
