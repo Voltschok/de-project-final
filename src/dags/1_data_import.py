@@ -51,10 +51,10 @@ conn_info = {'host': vertica_host,
 key_id= 'YCAJEWXOyY8Bmyk2eJL-hlt2K' #config.get('S3', 'aws_access_key_id')
 secret_key='YCPs52ajb2jNXxOUsL4-pFDL1HnV2BCPd928_ZoA' #config.get('S3', 'aws_secret_access_key')
 
-def load_transactions_data_postgres(table:str)->None:
+def load_transactions_data_postgres(table: str, operation_ts: str)->None:
     with vertica_python.connect(**conn) as connection:
         cur_vertica = connection.cursor()  
-        cur_vertica.execute(f"SELECT max(update_ts) FROM  STV230530__STAGING.{table}_update")
+        cur_vertica.execute(f"SELECT max({operation_ts}) FROM  STV230530__STAGING.{table}_update")
         last_loaded_dt= cur_vertica.fetchone()
         cur_vertica.close()
 
@@ -68,7 +68,7 @@ def load_transactions_data_postgres(table:str)->None:
     with vertica_python.connect(**conn) as connection:
         cur_vertica = connection.cursor()  
         cur_vertica.copy('''COPY table_1_temp FROM STDIN NULL AS 'null' ''',  input.getvalue())
-        cur_vertica.execute("""INSERT INTO STV230530__STAGING.transactions_update(key, updates_ts) VALUES ("transactions", SELECT max(transaction_dt) FROM STV230530__STAGING.transaction
+        cur_vertica.execute(f"""INSERT INTO STV230530__STAGING.{table}_update(key, updates_ts) VALUES ({table}, SELECT max(transaction_dt) FROM STV230530__STAGING.transaction
                               ON CONFLICT (key) DO UPDATE SET update_ts=EXCLUDED.update_ts""")
         cur_vertica.connection.commit()
         cur_vertica.close()
