@@ -73,17 +73,24 @@ def load_transactions_data_postgres(table: str, operation_ts: str)->None:
         cur_vertica.connection.commit()
         cur_vertica.close()
     
-def insert_into_hubs(hub_name):
-    with vertica_python.connect(**vertica_conn_info) as connection:
-    return VerticaOperator(
-                            task_id=f'{action}_{table_name}',
-                            vertica_conn_id='vertica_conn',
-                            sql=f'sql/Insert_into_{table_name}.sql')
+# def insert_into_tables(hub_name):
+    
+#     return VerticaOperator(
+#                             task_id=f'{action}_{table_name}',
+#                             vertica_conn_id='vertica_conn',
+#                             sql=f'sql/Insert_into_{table_name}.sql')
 
-def insert_into_links():
 
-def insert_into_sattelites():
+def insert_into_hubs(hub_list):
+  with vertica_python.connect(**vertica_conn_info) as connection:
+  for table in table_list:
+     query= f'sql/Insert_into_{table_name}.sql'
+     with vertica_python.connect(**vertica_conn_info) as connection:
+        cur_vertica = connection.cursor()  
+        cur_vertica.execute(
+    
 
+ 
   
 # def load_data(conn, path:str ,  file:str):  
 #     df_csv = pd.read_csv( path )
@@ -144,15 +151,21 @@ with DAG('final_project_staging', schedule_interval=None, start_date=pendulum.pa
     )
  
     task3=PythonOperator(
-       task_id='load_currencies',
-       python_callable=load_data,
-       op_kwargs={'conn': conn_info, 'path':'/data/currencies_history.csv', 'file':'currencies'},
+       task_id='insert_into_hubs',
+       python_callable=insert_into_hubs,
+       op_kwargs={'hub_list': ['h_currencies', 'h_accounts', 'h_transactions'] },
     )
     task4=PythonOperator(
-       task_id='load_transactions',
-       python_callable=load_data,
-       op_kwargs={'conn': conn_info, 'path':'/data/transactions_batch_1.csv', 'file':'transactions'},
+       task_id='insert_into_links',
+       python_callable=insert_into_links,
+       op_kwargs={'link_list': ['l_transaction_account', 'l_transaction_currency] },
     )
+    task5=PythonOperator(
+       task_id='insert_into_sattelites',
+       python_callable=insert_into_sattelites,
+       op_kwargs={'sattelite_list': ['s_transaction_amount', 's_transaction_status', 's_transaction_type', 's_transaction_country', 's_currency_exchange_rate'] },
+    )
+ 
  
 task1 >> task2 >> task3 >> task4
 
