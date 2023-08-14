@@ -73,68 +73,37 @@ def load_transactions_data_postgres(table: str, operation_ts: str)->None:
         cur_vertica.connection.commit()
         cur_vertica.close()
     
-# def insert_into_tables(hub_name):
-    
-#     return VerticaOperator(
-#                             task_id=f'{action}_{table_name}',
-#                             vertica_conn_id='vertica_conn',
-#                             sql=f'sql/Insert_into_{table_name}.sql')
-
 
 def insert_into_hubs(hub_list):
   with vertica_python.connect(**vertica_conn_info) as connection:
-  for table in table_list:
-     query= f'sql/Insert_into_{table_name}.sql'
+  for table in hub_list:
+     query= f'sql/insert_into_{table}.sql'
      with vertica_python.connect(**vertica_conn_info) as connection:
         cur_vertica = connection.cursor()  
-        cur_vertica.execute(
-    
-
- 
-  
-# def load_data(conn, path:str ,  file:str):  
-#     df_csv = pd.read_csv( path )
-#     tuple_col=", ".join(list(df_csv.columns) )
-#     tuple_col_str= ('('+ str(tuple_col)+')')
-#     print(tuple_col_str)
-#     with vertica_python.connect(**conn) as connection:
-#         cur = connection.cursor()
-#         cur.execute(f"""delete from STV230530__STAGING.{ file }""")
-#         connection.commit()
-#         cur.execute(f"""COPY STV230530__STAGING.{ file }{tuple_col_str}
-#             FROM LOCAL '{ path }' DELIMITER ',' ENFORCELENGTH""" )
-#         connection.commit()
-#         cur.close()
-        
-# def get_s3_file_list():
-#         s3_file_list=[]
-#         session = boto3.session.Session()
-#         s3_client = session.client(service_name='s3',
-#         endpoint_url='https://storage.yandexcloud.net',
-#         aws_access_key_id=key_id,
-#         aws_secret_access_key=secret_key)
-#         objects = s3_client.list_objects(Bucket='final-project')
-#         for object in objects['Contents']:
-#             s3_file_list.append(object['Key'])
-        
-#         return s3_file_list
-
-# def fetch_s3_file(bucket: str, key: str, bucket_quantity: int):
-#     # сюда поместить код из скрипта для скачивания файла
-#     files = os.listdir('/data/')
-#     for i in range(1, bucket_quantity+1):	
-#         if key=='transactions_batch_':
-#             key_boto3=key+str(i)+'.csv'
-#         else:
-#             key_boto3=key+'.csv'
-#         print(key)
-        
-#         if key_boto3 not in files:
-#             s3_client.download_file(bucket,
-#             key_boto3,
-#             Filename=f'/data/{key_boto3}')
-
- 
+        cur_vertica.execute(query)
+        cur_vertica.connection.commit()
+        cur_vertica.close()
+       
+def insert_into_links(sattelite_list):
+  with vertica_python.connect(**vertica_conn_info) as connection:
+  for table in sattelite_list:
+     query= f'sql/insert_into_{table}.sql'
+     with vertica_python.connect(**vertica_conn_info) as connection:
+        cur_vertica = connection.cursor()  
+        cur_vertica.execute(query)
+        cur_vertica.connection.commit()
+        cur_vertica.close()  
+       
+def insert_into_sattelites(sattelite_list):
+  with vertica_python.connect(**vertica_conn_info) as connection:
+  for table in sattelite_list:
+     query= f'sql/insert_into_{table}.sql'
+     with vertica_python.connect(**vertica_conn_info) as connection:
+        cur_vertica = connection.cursor()  
+        cur_vertica.execute(query)
+        cur_vertica.connection.commit()
+        cur_vertica.close()
+       
 with DAG('final_project_staging', schedule_interval=None, start_date=pendulum.parse('2022-10-01')
 ) as dag:
  
@@ -167,7 +136,7 @@ with DAG('final_project_staging', schedule_interval=None, start_date=pendulum.pa
     )
  
  
-task1 >> task2 >> task3 >> task4
+task1 >> task2 >> task3 >> task4 >> task5
 
 
 
