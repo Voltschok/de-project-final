@@ -1,6 +1,6 @@
 INSERT INTO STV230530__DWH.l_transaction_account(hk_l_transaction_account, hk_transaction_id, hk_account_id,load_dt,load_src)
 select
-hash(ht.hk_transaction_id, ha.hk_account_id),
+hash(ht.hk_transaction_id, ha.hk_account_id) as hk_l_transaction_account,
 ht.hk_transaction_id,
 ha.hk_account_id,
 now() as load_dt,
