@@ -2,6 +2,7 @@ from airflow import DAG
 from airflow.models.variable import Variable
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.decorators import dag
 import configparser
 import pendulum
@@ -24,10 +25,15 @@ import io
 # "user" : "student",
 # "password" : "d_student_112022"}
 
-
+#POSTGRES_CONN_ID = PostgresHook('postgres_conn')
 
 
 # Параметры безопасности Vertica
+ 
+ 
+
+VERTICA_CONN_ID = VerticaHook('vertica_conn')
+
 vertica_host = 'vertica.tgcloudenv.ru'  
 vertica_port = '5433' 
 vertica_user = 'stv230530' 
@@ -54,13 +60,15 @@ key_id= 'YCAJEWXOyY8Bmyk2eJL-hlt2K' #config.get('S3', 'aws_access_key_id')
 secret_key='YCPs52ajb2jNXxOUsL4-pFDL1HnV2BCPd928_ZoA' #config.get('S3', 'aws_secret_access_key')
 
 def load_data_postgres(table: str, operation_ts: str)->None:
+    #with VERTICA_CONN_ID.get_conn() as connection: 
     with vertica_python.connect(**vertica_conn_info) as connection:
         cur_vertica = connection.cursor()  
         cur_vertica.execute(f"SELECT max(update_ts) FROM  STV230530__STAGING.{table}_update")
         last_loaded_dt= (cur_vertica.fetchone())[0].date()   
         print(last_loaded_dt)
         cur_vertica.close()
-
+     
+    #with POSTGRES_CONN_ID.get_conn() as connect_to_postgresql: 
     with psycopg2.connect(database="db1", 
                            user="student", 
                            password="de_student_112022", 
