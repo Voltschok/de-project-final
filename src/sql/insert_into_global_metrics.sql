@@ -8,6 +8,7 @@ INSERT INTO STV230530__DWH.global_metrics (date_update,
 WITH temp_transaction AS(  
 SELECT  
   ht.hk_transaction_id, 
+  ht.transaction_td,
   hc.currency_code as currency_from,
   scer.currency_with_div, 
   CASE WHEN  hc.currency_code=420 THEN sta.amount
