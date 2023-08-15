@@ -9,13 +9,23 @@ WITH temp_transaction AS(
 SELECT  
   ht.hk_transaction_id, 
   hc.currency_code as currency from, 
-  sta.amount 
+  sta.amount,
+  sts.status,
+  scer.currency_with_div, 
+  lta.hk_account_id 
   
 FROM STV230530__DWH.h_transactions ht
 LEFT JOIN STV230530__DWH.l_transaction_currency ltc on ht.hk_transaction_id=ltc.hk_transaction_id
 LEFT JOIN STV230530__DWH.h_currencies hc on hc.hk_currency_id=ltc.hk_currency_id
+LEFT JOIN STV230530__DWH.s_currency_exchange_rate scer on scer.hk_currency_id = hc.hk_currency_id
 LEFT JOIN STV230530__DWH.s_transactions_amount sta on sta.hk_transaction_id = ht.hk_transaction_id
-WHERE ht.transaction_td = '{{ ds }}'
+LEFT JOIN STV230530__DWH.l_transaction_account lta on ht.hk_transaction_id=lta.hk_transaction_id
+LEFT JOIN STV230530__DWH.s_transactions_status sts on sts.hk_transaction_id = ht.hk_transaction_id
+LEFT JOIN STV230530__DWH.s_transactions_type stt on stt.hk_transaction_id = ht.hk_transaction_id
+  
+WHERE ht.transaction_td::DATE = '{{ ds }}'
+AND sts.status = 'done'
+AND stt."type" != 'authorisation'  
 ),
   
 temp_currency AS(
@@ -27,7 +37,6 @@ FROM STV230530__DWH.h_currencies hc on hc.hk_currency_id=ltc.hk_currency_id
 WHERE hc.date_update = '{{ ds }}'
   )
 
- 
   
    
 
