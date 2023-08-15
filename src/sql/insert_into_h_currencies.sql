@@ -1,7 +1,7 @@
 INSERT INTO STV230530__DWH.h_currencies(date_update, hk_currency_id, currency_code, currency_code_with,load_dt,load_src)
 select
        date_update,
-       hash(currency_code) as  hk_currency_id,
+       hash(currency_code, currency_code, date_update) as  hk_currency_id,
        currency_code,
        currency_code_with,
        
