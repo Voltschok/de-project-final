@@ -23,7 +23,7 @@ LEFT JOIN STV230530__DWH.l_transaction_account lta on ht.hk_transaction_id=lta.h
 LEFT JOIN STV230530__DWH.s_transactions_status sts on sts.hk_transaction_id = ht.hk_transaction_id
 LEFT JOIN STV230530__DWH.s_transactions_type stt on stt.hk_transaction_id = ht.hk_transaction_id
   
-WHERE ht.transaction_td::DATE = '{{ ds }}'
+WHERE ht.transaction_td::DATE = '{{ ds }}'-1
 AND sts.status = 'done'
 AND stt."type" != 'authorisation'  
 ),
