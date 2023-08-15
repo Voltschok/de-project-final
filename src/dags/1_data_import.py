@@ -80,6 +80,7 @@ def load_data_postgres(table: str, operation_ts: str)->None:
         cur_postrgres.copy_expert(f'''COPY (SELECT * from public.{table} WHERE {operation_ts} > '{last_loaded_dt}' ORDER BY {operation_ts}) TO STDOUT;''', input)
         cur_postrgres.close()
         print(input.getvalue())
+    #with VERTICA_CONN_ID.get_conn() as connection: 
     with vertica_python.connect(**vertica_conn_info) as connection:
         cur_vertica = connection.cursor()  
         cur_vertica.copy(f'''COPY STV230530__STAGING.{table} FROM STDIN DELIMITER E'\t'  NULL AS 'null'  ABORT ON ERROR;''', input.getvalue())
@@ -98,6 +99,7 @@ def insert_into_hubs(hub_list):
      path=f"/lessons/sql/insert_into_{hub}.sql"
      query=  open(path).read() 
      print(query)  
+     #with VERTICA_CONN_ID.get_conn() as connection: 
      with vertica_python.connect(**vertica_conn_info) as connection:
         cur_vertica = connection.cursor()  
         cur_vertica.execute(query)
@@ -108,6 +110,7 @@ def insert_into_links(link_list):
  
   for link in link_list:
      query= open(f"/lessons/sql/insert_into_{link}.sql").read() 
+     #with VERTICA_CONN_ID.get_conn() as connection: 
      with vertica_python.connect(**vertica_conn_info) as connection:
         cur_vertica = connection.cursor()  
         cur_vertica.execute(query)
@@ -118,6 +121,7 @@ def insert_into_sattelites(sattelite_list):
  
   for sattelite in sattelite_list:
      query= open(f"/lessons/sql/insert_into_{sattelite}.sql").read() 
+     #with VERTICA_CONN_ID.get_conn() as connection: 
      with vertica_python.connect(**vertica_conn_info) as connection:
         cur_vertica = connection.cursor()  
         cur_vertica.execute(query)
