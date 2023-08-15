@@ -14,9 +14,23 @@ import os
 import logging
 import io
  
+# Чтение параметров подключения для Kafka и Postgres из конфигурации
+# with open("../../../lessons/dags/config.json") as config_file:
+#     config = json.load(config_file)
+config = configparser.ConfigParser()
+
+config.read('config.ini')
+
+# Параметры подключения Postgres
+# postgres_host=config.get('Postgres', 'host')
+# postgres_port=config.get('Postgres', 'port')
+# postgres_dbname=config.get('Postgres', 'dbname')
+# postgres_user=config.get('Postgres', 'user')
+# postgres_password=config.get('Postgres', 'password')
 
 
 #Параметры подключения POSTGRES
+
 # postgres_conn={
 # "dbname": "db1",
 # "host" : "rc1b-w5d285tmxa8jimyn.mdb.yandexcloud.net",
