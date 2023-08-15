@@ -34,10 +34,10 @@ import io
 
 VERTICA_CONN_ID = VerticaHook('vertica_conn')
 
-vertica_host = 'vertica.tgcloudenv.ru'  
-vertica_port = '5433' 
-vertica_user = 'stv230530' 
-vertica_password =  'IjUMUB8AONAHDcT' 
+# vertica_host = 'vertica.tgcloudenv.ru'  
+# vertica_port = '5433' 
+# vertica_user = 'stv230530' 
+# vertica_password =  'IjUMUB8AONAHDcT' 
 
 vertica_conn_info = {'host': vertica_host,
              'port': vertica_port,
@@ -60,28 +60,28 @@ key_id= 'YCAJEWXOyY8Bmyk2eJL-hlt2K' #config.get('S3', 'aws_access_key_id')
 secret_key='YCPs52ajb2jNXxOUsL4-pFDL1HnV2BCPd928_ZoA' #config.get('S3', 'aws_secret_access_key')
 
 def load_data_postgres(table: str, operation_ts: str)->None:
-    #with VERTICA_CONN_ID.get_conn() as connection: 
-    with vertica_python.connect(**vertica_conn_info) as connection:
+    with VERTICA_CONN_ID.get_conn() as connection: 
+    # with vertica_python.connect(**vertica_conn_info) as connection:
         cur_vertica = connection.cursor()  
         cur_vertica.execute(f"SELECT max(update_ts) FROM  STV230530__STAGING.{table}_update")
         last_loaded_dt= (cur_vertica.fetchone())[0].date()   
         print(last_loaded_dt)
         cur_vertica.close()
      
-    #with POSTGRES_CONN_ID.get_conn() as connect_to_postgresql: 
-    with psycopg2.connect(database="db1", 
-                           user="student", 
-                           password="de_student_112022", 
-                           host="rc1b-w5d285tmxa8jimyn.mdb.yandexcloud.net", 
-                           port=6432,                             
-                           sslmode="require") as connect_to_postgresql: 
+    with POSTGRES_CONN_ID.get_conn() as connect_to_postgresql: 
+    # with psycopg2.connect(database="db1", 
+    #                        user="student", 
+    #                        password="de_student_112022", 
+    #                        host="rc1b-w5d285tmxa8jimyn.mdb.yandexcloud.net", 
+    #                        port=6432,                             
+    #                        sslmode="require") as connect_to_postgresql: 
         cur_postrgres = connect_to_postgresql.cursor()
         input = io.StringIO()
         cur_postrgres.copy_expert(f'''COPY (SELECT * from public.{table} WHERE {operation_ts} > '{last_loaded_dt}' ORDER BY {operation_ts}) TO STDOUT;''', input)
         cur_postrgres.close()
         print(input.getvalue())
-    #with VERTICA_CONN_ID.get_conn() as connection: 
-    with vertica_python.connect(**vertica_conn_info) as connection:
+    with VERTICA_CONN_ID.get_conn() as connection: 
+    #with vertica_python.connect(**vertica_conn_info) as connection:
         cur_vertica = connection.cursor()  
         cur_vertica.copy(f'''COPY STV230530__STAGING.{table} FROM STDIN DELIMITER E'\t'  NULL AS 'null'  ABORT ON ERROR;''', input.getvalue())
         cur_vertica.connection.commit()
