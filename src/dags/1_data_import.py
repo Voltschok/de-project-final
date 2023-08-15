@@ -58,7 +58,7 @@ def load_data_postgres(table: str, operation_ts: str)->None:
         cur_vertica = connection.cursor()  
         cur_vertica.execute(f"SELECT max(update_ts) FROM  STV230530__STAGING.{table}_update")
         last_loaded_dt= (cur_vertica.fetchone())[0].date()   
-        print(last_loaded_dt[0].date(), type(last_loaded_dt[0].date()))
+        print(last_loaded_dt)
         cur_vertica.close()
 
     with psycopg2.connect(database="db1", 
