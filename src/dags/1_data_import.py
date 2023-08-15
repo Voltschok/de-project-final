@@ -57,7 +57,7 @@ def load_data_postgres(table: str, operation_ts: str)->None:
     with vertica_python.connect(**vertica_conn_info) as connection:
         cur_vertica = connection.cursor()  
         cur_vertica.execute(f"SELECT max(update_ts) FROM  STV230530__STAGING.{table}_update")
-        last_loaded_dt= cur_vertica.fetchone()
+        last_loaded_dt= (cur_vertica.fetchone())[0].date()   
         print(last_loaded_dt[0].date(), type(last_loaded_dt[0].date()))
         cur_vertica.close()
 
@@ -69,7 +69,7 @@ def load_data_postgres(table: str, operation_ts: str)->None:
                            sslmode="require") as connect_to_postgresql: 
         cur_postrgres = connect_to_postgresql.cursor()
         input = io.StringIO()
-        cur_postrgres.copy_expert(f'''COPY (SELECT * from public.{table} WHERE {operation_ts} > '{last_loaded_dt[0].date()}' ORDER BY {operation_ts}) TO STDOUT;''', input)
+        cur_postrgres.copy_expert(f'''COPY (SELECT * from public.{table} WHERE {operation_ts} > '{last_loaded_dt}' ORDER BY {operation_ts}) TO STDOUT;''', input)
         cur_postrgres.close()
         print(input.getvalue())
     with vertica_python.connect(**vertica_conn_info) as connection:
