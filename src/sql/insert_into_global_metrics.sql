@@ -5,7 +5,7 @@ INSERT INTO STV230530__DWH.global_metrics (date_update,
                                           avg_transactions_per_account, 
                                           cnt_accounts_make_transactions)
 
-WITH temp_transaction AS(  
+WITH temp_table AS(  
 SELECT  
   ht.hk_transaction_id, 
   ht.transaction_td,
