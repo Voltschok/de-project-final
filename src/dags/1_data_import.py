@@ -86,8 +86,8 @@ def load_data_postgres(table: str, operation_ts: str)->None:
 
 def insert_into_hubs(hub_list):
  
-  for table in hub_list:
-     path=f"/lessons/sql/insert_into_{table}.sql"
+  for hub in hub_list:
+     path=f"/lessons/sql/insert_into_{hub}.sql"
      query=  open(path).read() 
      print(query)  
      with vertica_python.connect(**vertica_conn_info) as connection:
@@ -98,8 +98,8 @@ def insert_into_hubs(hub_list):
        
 def insert_into_links(link_list):
  
-  for table in link_list:
-     query= open(f"/lessons/sql/insert_into_{table}.sql").read() 
+  for link in link_list:
+     query= open(f"/lessons/sql/insert_into_{link}.sql").read() 
      with vertica_python.connect(**vertica_conn_info) as connection:
         cur_vertica = connection.cursor()  
         cur_vertica.execute(query)
@@ -108,8 +108,8 @@ def insert_into_links(link_list):
        
 def insert_into_sattelites(sattelite_list):
  
-  for table in sattelite_list:
-     query= open(f"/lessons/sql/insert_into_{table}.sql").read() 
+  for sattelite in sattelite_list:
+     query= open(f"/lessons/sql/insert_into_{sattelite}.sql").read() 
      with vertica_python.connect(**vertica_conn_info) as connection:
         cur_vertica = connection.cursor()  
         cur_vertica.execute(query)
