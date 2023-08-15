@@ -36,7 +36,7 @@ AND ha.account_number_from>0
       currency_from,
       sum(amount) as amount_total,
       count(distinct hk_transaction_id),
-      count(distinct transactions)/count(distinct hk_account_id) as avg_transactions_per_account,  
+      count(distinct hk_transaction_id)/count(distinct hk_account_id) as avg_transactions_per_account,  
       count(distinct hk_account_id) as cnt_accounts_make_transactions
 FROM temp_table
 GROUP BY date_update, currency_from
