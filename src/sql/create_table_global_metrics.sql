@@ -1,4 +1,4 @@
--- DROP TABLE IF EXISTS STV230530__DWH.global_metrics CASCADE;
+DROP TABLE IF EXISTS STV230530__DWH.global_metrics CASCADE;
 CREATE TABLE STV230530__DWH.global_metrics
 (
     date_update date,

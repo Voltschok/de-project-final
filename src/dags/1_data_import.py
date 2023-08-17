@@ -65,7 +65,8 @@ def load_data_postgres_vertica(table: str, operation_ts: str, count_date)->None:
         cur_vertica.close()
     
 
-with DAG('final_project_staging', schedule_interval="@daily", start_date=pendulum.parse('2022-10-01'), catchup=True 
+with DAG('final_project_staging', schedule_interval="@daily", start_date=pendulum.parse('2022-10-01'),  
+         end_date=pendulum.parse('2022-11-02'),   catchup=True
 ) as dag:
 
      task1 = PythonOperator(
