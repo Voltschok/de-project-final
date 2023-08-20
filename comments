@@ -1,0 +1,3 @@
+1. Использовал относительный путь для конфигурационного файла во всех трех DAG (0_create_table.py, 1_data_import.py, 2_datamart_update.py)
+2. Добавил блоки try-except для обработки ошибок и регистрации их в логах во всех трех DAG (0_create_table.py, 1_data_import.py, 2_datamart_update.py)
+3. Использовал цикл или список для создания задач в DAG 0_create_table.py

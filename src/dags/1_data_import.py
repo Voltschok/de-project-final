@@ -10,9 +10,16 @@ import os
 import logging
 import io
  
+ 
+# Определение пути к текущему скрипту
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Формирование пути к конфигурационному файлу с использованием относительного пути
+config_file_path = os.path.join(current_dir, "../../../lessons/dags/config.ini")
+
 # Чтение параметров подключения для Postgres и Vertica из конфигурации
 config = configparser.ConfigParser()
-config.read("../../../lessons/dags/config.ini")
+config.read(config_file_path) 
  
 
 # Параметры подключения Postgres
@@ -48,22 +55,24 @@ vertica_conn_info = {'host': vertica_host,
             }
 
 def load_data_postgres_vertica(table: str, operation_ts: str, count_date)->None:
-   print(count_date)
-   with psycopg2.connect(**postgres_conn) as connect_to_postgresql:
-        cur_postrgres = connect_to_postgresql.cursor()
-        input = io.StringIO()
-        cur_postrgres.copy_expert(f'''COPY (SELECT distinct * from public.{table} WHERE {operation_ts}::date='{count_date}'::date-1 ORDER BY {operation_ts}) TO STDOUT;''', input)
-        cur_postrgres.close()
-      
-   with vertica_python.connect(**vertica_conn_info) as connection:
+     try:
+          with psycopg2.connect(**postgres_conn) as connect_to_postgresql:
+               cur_postrgres = connect_to_postgresql.cursor()
+               input = io.StringIO()
+               cur_postrgres.copy_expert(f'''COPY (SELECT distinct * from public.{table} WHERE {operation_ts}::date='{count_date}'::date-1 ORDER BY {operation_ts}) TO STDOUT;''', input)
+               cur_postrgres.close()
+               
+          with vertica_python.connect(**vertica_conn_info) as connection:
 
-        cur_vertica = connection.cursor()  
-        cur_vertica.execute(f"""DELETE FROM STV230530__STAGING.{ table } WHERE {operation_ts}::date='{count_date}'::date-1""")
-        connection.commit()
-        cur_vertica.copy(f'''COPY STV230530__STAGING.{table} FROM STDIN DELIMITER E'\t'  NULL AS 'null'  REJECTED DATA AS TABLE COPY_EX1_rej;''', input.getvalue())
-        cur_vertica.connection.commit()
-        cur_vertica.close()
-    
+               cur_vertica = connection.cursor()  
+               cur_vertica.execute(f"""DELETE FROM STV230530__STAGING.{ table } WHERE {operation_ts}::date='{count_date}'::date-1""")
+               connection.commit()
+               cur_vertica.copy(f'''COPY STV230530__STAGING.{table} FROM STDIN DELIMITER E'\t'  NULL AS 'null'  REJECTED DATA AS TABLE COPY_EX1_rej;''', input.getvalue())
+               cur_vertica.connection.commit()
+ 
+     except Exception as e:
+          logging.error(f"Error in load_data_postgres_vertica for table {table}: {str(e)}")
+          raise 
 
 with DAG('final_project_staging', schedule_interval="@daily", start_date=pendulum.parse('2022-10-01'),  
          end_date=pendulum.parse('2022-11-02'),   catchup=True

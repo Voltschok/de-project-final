@@ -3,11 +3,17 @@ from airflow.operators.python import PythonOperator
 import configparser
 import pendulum
 import vertica_python
-
+import logging
  
+# Определение пути к текущему скрипту
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Формирование пути к конфигурационному файлу с использованием относительного пути
+config_file_path = os.path.join(current_dir, "../../../lessons/dags/config.ini")
+
 # Чтение параметров подключения для Postgres и Vertica из конфигурации
 config = configparser.ConfigParser()
-config.read("../../../lessons/dags/config.ini")
+config.read(config_file_path) 
  
 
 # Параметры подключения Postgres
@@ -45,17 +51,21 @@ vertica_conn_info = {'host': vertica_host,
  
 
 def load_global_metrics(date):
-
-    query = open("/lessons/sql/insert_into_global_metrics.sql").read() 
-    f_query =query.format(count_date=date) 
- 
-    with vertica_python.connect(**vertica_conn_info) as connection:
-        cur_vertica = connection.cursor()
-        cur_vertica.execute(f_query)
-       
-        cur_vertica.connection.commit()
-        cur_vertica.close()  
+    try:
+        query = open("/lessons/sql/insert_into_global_metrics.sql").read() 
+        f_query =query.format(count_date=date) 
+    
+        with vertica_python.connect(**vertica_conn_info) as connection:
+            cur_vertica = connection.cursor()
+            cur_vertica.execute(f_query)
+        
+            cur_vertica.connection.commit()
+            cur_vertica.close()  
      
+    except Exception as e:
+        logging.error(f"Error in load_data_postgres_vertica for table global_metrics: {str(e)}")
+        raise 
+
 with DAG('final_project_cdm', schedule_interval="@daily", start_date=pendulum.parse('2022-10-01'),
          end_date=pendulum.parse('2022-11-02'),   catchup=True
 ) as dag:

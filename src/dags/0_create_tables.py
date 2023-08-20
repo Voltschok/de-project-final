@@ -6,11 +6,19 @@ import pendulum
 import vertica_python
 import psycopg2
 import os
+import logging
+from pathlib import Path
 
- 
+
+# Определение пути к текущему скрипту
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Формирование пути к конфигурационному файлу с использованием относительного пути
+config_file_path = os.path.join(current_dir, "../../../lessons/dags/config.ini")
+
 # Чтение параметров подключения для Postgres и Vertica из конфигурации
 config = configparser.ConfigParser()
-config.read("../../../lessons/dags/config.ini")
+config.read(config_file_path) 
  
 
 # Параметры подключения Vertica
@@ -30,53 +38,38 @@ vertica_conn_info = {'host': vertica_host,
              'connection_timeout': 30
             }
 
-def create_table_currency():
+# Список SQL-файлов для создания таблиц
+sql_files = [
+"/lessons/sql/create_table_currencies.sql",
+"/lessons/sql/create_table_transactions.sql",
+"/lessons/sql/create_table_global_metrics.sql"
+]
 
-     query=  open(f"/lessons/sql/create_table_currencies.sql").read() 
+
+def create_table(sql_file):
+     try:
+          query = open(sql_file).read()
+          with vertica_python.connect(**vertica_conn_info) as connection:
+               cur_vertica = connection.cursor()
+               cur_vertica.execute(query)
+               cur_vertica.connection.commit()
+               cur_vertica.close() 
+     except Exception as e:
+          logging.error(f"Error in load_data_postgres_vertica for table {Path(sql_file).stem.replace('create_table_','')}: {str(e)}")
+          raise 
+
+
  
-     with vertica_python.connect(**vertica_conn_info) as connection:
-        cur_vertica = connection.cursor()  
-        cur_vertica.execute(query)
-        cur_vertica.connection.commit()
-        cur_vertica.close()
-def create_table_transaction():
-
-     query=  open(f"/lessons/sql/create_table_transactions.sql").read() 
- 
-     with vertica_python.connect(**vertica_conn_info) as connection:
-        cur_vertica = connection.cursor()  
-        cur_vertica.execute(query)
-        cur_vertica.connection.commit()
-        cur_vertica.close()
-       
-def create_table_global_metric():
-
-     query=  open(f"/lessons/sql/create_table_global_metrics.sql").read() 
- 
-     with vertica_python.connect(**vertica_conn_info) as connection:
-        cur_vertica = connection.cursor()  
-        cur_vertica.execute(query)
-        cur_vertica.connection.commit()
-        cur_vertica.close()
-
 with DAG('init_ddl', schedule_interval=None, start_date=pendulum.parse('2023-08-17'), catchup=False) as dag:
- 
 
-     task1 = PythonOperator(
-          task_id='create_table_currency',
-          python_callable=create_table_currency,
-         
-      )
-     task2 = PythonOperator(
-          task_id='create_table_transaction',
-          python_callable=create_table_transaction,
-         
-      )
-     task3 = PythonOperator(
-          task_id='create_table_global_metric',
-          python_callable=create_table_global_metric,
-         
-      ) 
+     # Создание задач для каждого SQL-файла
+     for i, sql_file in enumerate(sql_files):
+          task = PythonOperator(
+               task_id=f'create_table_{i + 1}',
+               python_callable=lambda file=sql_file: create_table(file),
+          )
+
+task  
+
  
  
-task1  >> task2 >> task3
