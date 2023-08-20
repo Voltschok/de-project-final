@@ -60,7 +60,7 @@ def create_table(sql_file):
 
 
  
-with DAG('init_ddl', schedule_interval=None, start_date=pendulum.parse('2023-08-17'), catchup=False) as dag:
+with DAG('init_ddl', schedule_interval=None, start_date=pendulum.parse('2023-08-20'), catchup=False) as dag:
 
      # Создание задач для каждого SQL-файла
      for i, sql_file in enumerate(sql_files):
