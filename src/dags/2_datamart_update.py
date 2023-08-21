@@ -63,7 +63,7 @@ def load_global_metrics(date):
             cur_vertica.close()  
      
     except Exception as e:
-        logging.error(f"Error in load_data_postgres_vertica for table global_metrics: {str(e)}")
+        logging.error(f"Error in load_global_metrics for table global_metrics: {str(e)}")
         raise 
 
 with DAG('final_project_cdm', schedule_interval="@daily", start_date=pendulum.parse('2022-10-01'),
